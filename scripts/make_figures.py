@@ -197,13 +197,24 @@ def replay(params: dict) -> dict:
         idx = np.array([int(r["t_s"]) for r in rows])
         sim_on = df["heater"].to_numpy()[idx] > 0
         axes[1].fill_between(t_real, 1 + i, 1.8 + i, where=sim_on, color=colour, step="post")
+        # the first target change (32 -> 34.5 °C) starts the part of the day the export
+        # explains fully; before it the device sat an hour below target with the heater off
+        step_i = next(i for i, r in enumerate(rows) if r["target"] != rows[0]["target"])
         out[plant_name] = {
             "rmse_c": round(float(np.sqrt(np.nanmean((sim - real_temp) ** 2))), 3),
+            "rmse_after_first_step_c": round(
+                float(np.sqrt(np.nanmean((sim[step_i:] - real_temp[step_i:]) ** 2))), 3
+            ),
+            "first_approach_overshoot_c": round(
+                float(np.nanmax(sim[:step_i]) - rows[0]["target"]), 3
+            ),
             "max_abs_error_c": round(float(np.nanmax(np.abs(sim - real_temp))), 3),
             "sim_heater_on_fraction": round(float(df["heater"].mean()), 3),
             "sim_switch_ons": int(metrics.switch_count(df["heater"])),
         }
     out["real"] = {
+        "first_approach_overshoot_c": round(float(real_temp[:step_i].max() - rows[0]["target"]), 3),
+        "first_step_at_h": round(float(t_real[step_i]), 2),
         "heater_on_fraction": round(float(real_on.mean()), 3),
         "switch_ons": int(metrics.switch_count(__import__("pandas").Series(real_on))),
         "readings": len(rows),

@@ -577,17 +577,23 @@
   "replay_2026_10_03": {
     "first_order": {
       "rmse_c": 0.947,
+      "rmse_after_first_step_c": 0.747,
+      "first_approach_overshoot_c": 1.537,
       "max_abs_error_c": 3.197,
       "sim_heater_on_fraction": 0.202,
       "sim_switch_ons": 15
     },
     "heater_lag": {
       "rmse_c": 0.63,
+      "rmse_after_first_step_c": 0.213,
+      "first_approach_overshoot_c": 0.15,
       "max_abs_error_c": 1.722,
       "sim_heater_on_fraction": 0.196,
       "sim_switch_ons": 26
     },
     "real": {
+      "first_approach_overshoot_c": 1.42,
+      "first_step_at_h": 2.24,
       "heater_on_fraction": 0.192,
       "switch_ons": 32,
       "readings": 1367,
