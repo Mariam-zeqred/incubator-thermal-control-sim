@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+build/
+dist/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.log
+*.pem
+*.key
+secrets*.h
+!secrets.example.h
+.streamlit/secrets.toml
+
+# Large data (anything over 10 MB stays out of git)
+data/raw/
+*.parquet
+*.zip
+*.gz

@@ -1,0 +1,20 @@
+[project]
+name = "incubator-thermal-control-sim"
+version = "0.1.0"
+description = "Thermal model of a queen-bee incubator and a comparison of on/off, PID and MPC heater control"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "N"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
