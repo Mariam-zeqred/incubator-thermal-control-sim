@@ -1,0 +1,597 @@
+{
+  "version": "0.1.0",
+  "source": "scripts/make_figures.py; plants from data/model_params.json (incubator-telemetry-analysis, one device, one day); ambient trace from data/incubator_2026-10-03.csv",
+  "controllers": {
+    "on/off firmware": "Config.h defaults: band 0.4, anticipation 0.1, coast 200 s, min off 30 s, duty 600 s on / 60 s rest",
+    "on/off plain": "band 0.4, nothing else",
+    "PID relay": "SIMC PI on the first-order fit: kp=0.258 /\u00b0C, Ti=28.0 min, 120 s time-proportioning window, 10 s minimum pulse",
+    "MPC sketch": "heater-lag internal model, horizon 4 \u00d7 120 s, 5 duty levels, \u03bb_u 0.02, \u03bb_sw 0.05, bias correction"
+  },
+  "scenarios": {
+    "cold start": "Chamber at ambient 27.2 \u00b0C, target 34.5 \u00b0C from t = 0.",
+    "setpoint step": "Holding 34.5 \u00b0C, target raised to 36.5 \u00b0C after one hour.",
+    "door opening": "Holding 34.5 \u00b0C, door open for 10 min after one hour (loss \u00d710, illustrative); heater interlocked off while open.",
+    "ambient drift": "Holding 34.5 \u00b0C while ambient follows the real tempOut trace of 2026-10-03."
+  },
+  "metrics_note": "evaluated from t=0 (cold start, ambient drift) or from the event at 1 h (setpoint step, door opening); heating_c = a \u00d7 heater-on minutes, proportional to energy (heater power unknown)",
+  "matrix": {
+    "first_order": {
+      "cold start": {
+        "on/off firmware": {
+          "time_to_target_min": 18.333333333333332,
+          "overshoot_c": 1.37,
+          "undershoot_c": 0.453,
+          "heater_on_min": 45.22,
+          "heating_c": 25.05,
+          "switches": 10,
+          "rms_error_c": 0.673,
+          "in_band_fraction": 0.225,
+          "final_error_c": 0.389
+        },
+        "on/off plain": {
+          "time_to_target_min": 17.233333333333334,
+          "overshoot_c": 1.856,
+          "undershoot_c": 0.452,
+          "heater_on_min": 47.28,
+          "heating_c": 26.19,
+          "switches": 7,
+          "rms_error_c": 0.955,
+          "in_band_fraction": 0.16,
+          "final_error_c": 0.698
+        },
+        "PID relay": {
+          "time_to_target_min": 17.6,
+          "overshoot_c": 0.704,
+          "undershoot_c": 0.195,
+          "heater_on_min": 43.92,
+          "heating_c": 24.33,
+          "switches": 110,
+          "rms_error_c": 0.116,
+          "in_band_fraction": 0.886,
+          "final_error_c": -0.047
+        },
+        "MPC sketch": {
+          "time_to_target_min": 17.233333333333334,
+          "overshoot_c": 0.943,
+          "undershoot_c": 0.373,
+          "heater_on_min": 45.0,
+          "heating_c": 24.93,
+          "switches": 39,
+          "rms_error_c": 0.274,
+          "in_band_fraction": 0.551,
+          "final_error_c": 0.11
+        }
+      },
+      "setpoint step": {
+        "on/off firmware": {
+          "time_to_target_min": 4.733333333333333,
+          "overshoot_c": 1.266,
+          "undershoot_c": 0.525,
+          "heater_on_min": 44.25,
+          "heating_c": 24.51,
+          "switches": 12,
+          "rms_error_c": 0.63,
+          "in_band_fraction": 0.221,
+          "final_error_c": 0.465
+        },
+        "on/off plain": {
+          "time_to_target_min": 6.983333333333333,
+          "overshoot_c": 1.787,
+          "undershoot_c": 0.522,
+          "heater_on_min": 48.53,
+          "heating_c": 26.88,
+          "switches": 9,
+          "rms_error_c": 0.909,
+          "in_band_fraction": 0.174,
+          "final_error_c": 0.654
+        },
+        "PID relay": {
+          "time_to_target_min": 9.7,
+          "overshoot_c": 0.733,
+          "undershoot_c": 0.199,
+          "heater_on_min": 44.15,
+          "heating_c": 24.45,
+          "switches": 118,
+          "rms_error_c": 0.133,
+          "in_band_fraction": 0.912,
+          "final_error_c": -0.063
+        },
+        "MPC sketch": {
+          "time_to_target_min": 7.016666666666667,
+          "overshoot_c": 0.935,
+          "undershoot_c": 0.327,
+          "heater_on_min": 44.0,
+          "heating_c": 24.37,
+          "switches": 49,
+          "rms_error_c": 0.28,
+          "in_band_fraction": 0.537,
+          "final_error_c": 0.138
+        }
+      },
+      "door opening": {
+        "on/off firmware": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 1.371,
+          "undershoot_c": 4.051,
+          "heater_on_min": 31.4,
+          "heating_c": 17.39,
+          "switches": 7,
+          "rms_error_c": 1.11,
+          "in_band_fraction": 0.211,
+          "final_error_c": 0.45
+        },
+        "on/off plain": {
+          "time_to_target_min": 0.31666666666666665,
+          "overshoot_c": 1.855,
+          "undershoot_c": 4.582,
+          "heater_on_min": 32.52,
+          "heating_c": 18.01,
+          "switches": 5,
+          "rms_error_c": 1.412,
+          "in_band_fraction": 0.147,
+          "final_error_c": 0.718
+        },
+        "PID relay": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 1.047,
+          "undershoot_c": 4.693,
+          "heater_on_min": 30.68,
+          "heating_c": 17.0,
+          "switches": 76,
+          "rms_error_c": 1.15,
+          "in_band_fraction": 0.794,
+          "final_error_c": -0.048
+        },
+        "MPC sketch": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.649,
+          "undershoot_c": 4.572,
+          "heater_on_min": 30.5,
+          "heating_c": 16.89,
+          "switches": 27,
+          "rms_error_c": 1.11,
+          "in_band_fraction": 0.528,
+          "final_error_c": 0.197
+        }
+      },
+      "ambient drift": {
+        "on/off firmware": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 1.441,
+          "undershoot_c": 0.451,
+          "heater_on_min": 45.95,
+          "heating_c": 25.45,
+          "switches": 12,
+          "rms_error_c": 0.711,
+          "in_band_fraction": 0.225,
+          "final_error_c": 0.463
+        },
+        "on/off plain": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 1.892,
+          "undershoot_c": 0.451,
+          "heater_on_min": 48.1,
+          "heating_c": 26.64,
+          "switches": 10,
+          "rms_error_c": 0.958,
+          "in_band_fraction": 0.186,
+          "final_error_c": 0.608
+        },
+        "PID relay": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.046,
+          "undershoot_c": 0.64,
+          "heater_on_min": 41.48,
+          "heating_c": 22.98,
+          "switches": 170,
+          "rms_error_c": 0.133,
+          "in_band_fraction": 0.909,
+          "final_error_c": -0.044
+        },
+        "MPC sketch": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.619,
+          "undershoot_c": 0.349,
+          "heater_on_min": 43.0,
+          "heating_c": 23.82,
+          "switches": 60,
+          "rms_error_c": 0.191,
+          "in_band_fraction": 0.709,
+          "final_error_c": 0.02
+        }
+      }
+    },
+    "heater_lag": {
+      "cold start": {
+        "on/off firmware": {
+          "time_to_target_min": 20.616666666666667,
+          "overshoot_c": 0.065,
+          "undershoot_c": 0.221,
+          "heater_on_min": 43.88,
+          "heating_c": 25.93,
+          "switches": 18,
+          "rms_error_c": 0.104,
+          "in_band_fraction": 0.829,
+          "final_error_c": -0.037
+        },
+        "on/off plain": {
+          "time_to_target_min": 17.8,
+          "overshoot_c": 1.732,
+          "undershoot_c": 0.232,
+          "heater_on_min": 45.95,
+          "heating_c": 27.15,
+          "switches": 8,
+          "rms_error_c": 0.654,
+          "in_band_fraction": 0.235,
+          "final_error_c": 0.352
+        },
+        "PID relay": {
+          "time_to_target_min": 18.733333333333334,
+          "overshoot_c": 0.694,
+          "undershoot_c": 0.216,
+          "heater_on_min": 44.5,
+          "heating_c": 26.29,
+          "switches": 106,
+          "rms_error_c": 0.154,
+          "in_band_fraction": 0.835,
+          "final_error_c": 0.004
+        },
+        "MPC sketch": {
+          "time_to_target_min": 18.366666666666667,
+          "overshoot_c": 0.517,
+          "undershoot_c": 0.199,
+          "heater_on_min": 44.5,
+          "heating_c": 26.29,
+          "switches": 58,
+          "rms_error_c": 0.108,
+          "in_band_fraction": 0.871,
+          "final_error_c": 0.011
+        }
+      },
+      "setpoint step": {
+        "on/off firmware": {
+          "time_to_target_min": 9.05,
+          "overshoot_c": 0.043,
+          "undershoot_c": 0.228,
+          "heater_on_min": 44.87,
+          "heating_c": 26.51,
+          "switches": 21,
+          "rms_error_c": 0.113,
+          "in_band_fraction": 0.84,
+          "final_error_c": -0.071
+        },
+        "on/off plain": {
+          "time_to_target_min": 4.8,
+          "overshoot_c": 1.27,
+          "undershoot_c": 0.247,
+          "heater_on_min": 43.85,
+          "heating_c": 25.91,
+          "switches": 10,
+          "rms_error_c": 0.522,
+          "in_band_fraction": 0.268,
+          "final_error_c": 0.302
+        },
+        "PID relay": {
+          "time_to_target_min": 10.7,
+          "overshoot_c": 0.628,
+          "undershoot_c": 0.199,
+          "heater_on_min": 45.52,
+          "heating_c": 26.89,
+          "switches": 118,
+          "rms_error_c": 0.131,
+          "in_band_fraction": 0.886,
+          "final_error_c": 0.004
+        },
+        "MPC sketch": {
+          "time_to_target_min": 8.266666666666667,
+          "overshoot_c": 0.147,
+          "undershoot_c": 0.199,
+          "heater_on_min": 45.5,
+          "heating_c": 26.88,
+          "switches": 76,
+          "rms_error_c": 0.058,
+          "in_band_fraction": 0.966,
+          "final_error_c": 0.035
+        }
+      },
+      "door opening": {
+        "on/off firmware": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.07,
+          "undershoot_c": 4.69,
+          "heater_on_min": 31.42,
+          "heating_c": 18.56,
+          "switches": 14,
+          "rms_error_c": 1.135,
+          "in_band_fraction": 0.767,
+          "final_error_c": -0.059
+        },
+        "on/off plain": {
+          "time_to_target_min": 0.25,
+          "overshoot_c": 1.629,
+          "undershoot_c": 4.167,
+          "heater_on_min": 32.38,
+          "heating_c": 19.13,
+          "switches": 6,
+          "rms_error_c": 1.142,
+          "in_band_fraction": 0.221,
+          "final_error_c": 0.408
+        },
+        "PID relay": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.939,
+          "undershoot_c": 4.767,
+          "heater_on_min": 31.43,
+          "heating_c": 18.57,
+          "switches": 73,
+          "rms_error_c": 1.18,
+          "in_band_fraction": 0.754,
+          "final_error_c": 0.004
+        },
+        "MPC sketch": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.666,
+          "undershoot_c": 4.746,
+          "heater_on_min": 31.0,
+          "heating_c": 18.31,
+          "switches": 39,
+          "rms_error_c": 1.157,
+          "in_band_fraction": 0.785,
+          "final_error_c": 0.019
+        }
+      },
+      "ambient drift": {
+        "on/off firmware": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.112,
+          "undershoot_c": 0.231,
+          "heater_on_min": 43.87,
+          "heating_c": 25.92,
+          "switches": 25,
+          "rms_error_c": 0.106,
+          "in_band_fraction": 0.912,
+          "final_error_c": -0.042
+        },
+        "on/off plain": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.848,
+          "undershoot_c": 0.231,
+          "heater_on_min": 45.65,
+          "heating_c": 26.97,
+          "switches": 12,
+          "rms_error_c": 0.525,
+          "in_band_fraction": 0.277,
+          "final_error_c": 0.394
+        },
+        "PID relay": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.029,
+          "undershoot_c": 0.598,
+          "heater_on_min": 43.28,
+          "heating_c": 25.57,
+          "switches": 170,
+          "rms_error_c": 0.122,
+          "in_band_fraction": 0.933,
+          "final_error_c": 0.001
+        },
+        "MPC sketch": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.093,
+          "undershoot_c": 0.127,
+          "heater_on_min": 43.5,
+          "heating_c": 25.7,
+          "switches": 86,
+          "rms_error_c": 0.045,
+          "in_band_fraction": 1.0,
+          "final_error_c": -0.0
+        }
+      }
+    },
+    "chamber_wall": {
+      "cold start": {
+        "on/off firmware": {
+          "time_to_target_min": 29.766666666666666,
+          "overshoot_c": 0.0,
+          "undershoot_c": 0.347,
+          "heater_on_min": 42.07,
+          "heating_c": 23.3,
+          "switches": 362,
+          "rms_error_c": 0.15,
+          "in_band_fraction": 0.807,
+          "final_error_c": -0.142
+        },
+        "on/off plain": {
+          "time_to_target_min": 9.133333333333333,
+          "overshoot_c": 0.225,
+          "undershoot_c": 0.218,
+          "heater_on_min": 43.05,
+          "heating_c": 23.85,
+          "switches": 121,
+          "rms_error_c": 0.123,
+          "in_band_fraction": 0.912,
+          "final_error_c": -0.015
+        },
+        "PID relay": {
+          "time_to_target_min": 12.983333333333333,
+          "overshoot_c": 0.735,
+          "undershoot_c": 0.915,
+          "heater_on_min": 44.25,
+          "heating_c": 24.51,
+          "switches": 118,
+          "rms_error_c": 0.293,
+          "in_band_fraction": 0.395,
+          "final_error_c": 0.196
+        },
+        "MPC sketch": {
+          "time_to_target_min": 19.233333333333334,
+          "overshoot_c": 2.734,
+          "undershoot_c": 0.79,
+          "heater_on_min": 46.0,
+          "heating_c": 25.48,
+          "switches": 50,
+          "rms_error_c": 0.729,
+          "in_band_fraction": 0.082,
+          "final_error_c": 0.586
+        }
+      },
+      "setpoint step": {
+        "on/off firmware": {
+          "time_to_target_min": 27.116666666666667,
+          "overshoot_c": 0.0,
+          "undershoot_c": 0.361,
+          "heater_on_min": 42.9,
+          "heating_c": 23.76,
+          "switches": 395,
+          "rms_error_c": 0.168,
+          "in_band_fraction": 0.662,
+          "final_error_c": -0.159
+        },
+        "on/off plain": {
+          "time_to_target_min": 1.4833333333333334,
+          "overshoot_c": 0.227,
+          "undershoot_c": 0.213,
+          "heater_on_min": 43.87,
+          "heating_c": 24.3,
+          "switches": 147,
+          "rms_error_c": 0.125,
+          "in_band_fraction": 0.924,
+          "final_error_c": -0.007
+        },
+        "PID relay": {
+          "time_to_target_min": 2.4833333333333334,
+          "overshoot_c": 0.656,
+          "undershoot_c": 0.752,
+          "heater_on_min": 45.13,
+          "heating_c": 25.0,
+          "switches": 120,
+          "rms_error_c": 0.305,
+          "in_band_fraction": 0.401,
+          "final_error_c": 0.24
+        },
+        "MPC sketch": {
+          "time_to_target_min": 1.3,
+          "overshoot_c": 2.107,
+          "undershoot_c": 0.759,
+          "heater_on_min": 48.0,
+          "heating_c": 26.59,
+          "switches": 42,
+          "rms_error_c": 0.938,
+          "in_band_fraction": 0.034,
+          "final_error_c": 0.848
+        }
+      },
+      "door opening": {
+        "on/off firmware": {
+          "time_to_target_min": 34.3,
+          "overshoot_c": 0.0,
+          "undershoot_c": 0.36,
+          "heater_on_min": 28.23,
+          "heating_c": 15.64,
+          "switches": 261,
+          "rms_error_c": 0.152,
+          "in_band_fraction": 0.737,
+          "final_error_c": -0.142
+        },
+        "on/off plain": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.228,
+          "undershoot_c": 5.105,
+          "heater_on_min": 28.93,
+          "heating_c": 16.03,
+          "switches": 89,
+          "rms_error_c": 0.996,
+          "in_band_fraction": 0.873,
+          "final_error_c": -0.015
+        },
+        "PID relay": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.742,
+          "undershoot_c": 5.086,
+          "heater_on_min": 29.97,
+          "heating_c": 16.6,
+          "switches": 84,
+          "rms_error_c": 1.034,
+          "in_band_fraction": 0.334,
+          "final_error_c": 0.195
+        },
+        "MPC sketch": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 2.175,
+          "undershoot_c": 5.008,
+          "heater_on_min": 31.5,
+          "heating_c": 17.45,
+          "switches": 36,
+          "rms_error_c": 1.181,
+          "in_band_fraction": 0.074,
+          "final_error_c": 0.615
+        }
+      },
+      "ambient drift": {
+        "on/off firmware": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.037,
+          "undershoot_c": 0.208,
+          "heater_on_min": 40.2,
+          "heating_c": 22.27,
+          "switches": 291,
+          "rms_error_c": 0.12,
+          "in_band_fraction": 0.962,
+          "final_error_c": -0.104
+        },
+        "on/off plain": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.228,
+          "undershoot_c": 0.208,
+          "heater_on_min": 40.77,
+          "heating_c": 22.58,
+          "switches": 153,
+          "rms_error_c": 0.125,
+          "in_band_fraction": 0.938,
+          "final_error_c": -0.016
+        },
+        "PID relay": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 0.429,
+          "undershoot_c": 0.338,
+          "heater_on_min": 42.18,
+          "heating_c": 23.37,
+          "switches": 170,
+          "rms_error_c": 0.203,
+          "in_band_fraction": 0.611,
+          "final_error_c": 0.163
+        },
+        "MPC sketch": {
+          "time_to_target_min": 0.0,
+          "overshoot_c": 1.584,
+          "undershoot_c": 0.1,
+          "heater_on_min": 45.5,
+          "heating_c": 25.2,
+          "switches": 70,
+          "rms_error_c": 0.625,
+          "in_band_fraction": 0.137,
+          "final_error_c": 0.606
+        }
+      }
+    }
+  },
+  "replay_2026_10_03": {
+    "first_order": {
+      "rmse_c": 0.947,
+      "max_abs_error_c": 3.197,
+      "sim_heater_on_fraction": 0.202,
+      "sim_switch_ons": 15
+    },
+    "heater_lag": {
+      "rmse_c": 0.63,
+      "max_abs_error_c": 1.722,
+      "sim_heater_on_fraction": 0.196,
+      "sim_switch_ons": 26
+    },
+    "real": {
+      "heater_on_fraction": 0.192,
+      "switch_ons": 32,
+      "readings": 1367,
+      "span_h": 5.71
+    }
+  }
+}
