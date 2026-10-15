@@ -28,7 +28,7 @@ data/model_params.json  (a, b, τ_h fitted in repo #1)      data/incubator_2026-
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-make check          # ruff + 36 pytest tests + regenerate figures/ (≈ 15 s)
+make check          # ruff + 36 pytest tests + regenerate figures/ (≈ 10–15 s)
 make app            # Streamlit page: pick plant, scenario, controller settings
 ```
 
@@ -79,8 +79,8 @@ following the real `tempOut` trace (27.2–28.3 °C over 5.7 h).
 | cold start, 4 h | to band (min) | overshoot (°C) | heater on (min) | switch-ons | in band | final error (°C) |
 |---|---|---|---|---|---|---|
 | on/off firmware | 20.6 | **0.07** | 43.9 | 18 | 83 % | −0.04 |
-| on/off plain | 17.8 | 1.73 | 46.0 | **8** | 23 % | +0.35 |
-| PID relay | 18.7 | 0.69 | 44.5 | 106 | 83 % | 0.00 |
+| on/off plain | 17.8 | 1.73 | 46.0 | **8** | 24 % | +0.35 |
+| PID relay | 18.7 | 0.69 | 44.5 | 106 | 84 % | 0.00 |
 | MPC sketch | 18.4 | 0.52 | 44.5 | 58 | 87 % | +0.01 |
 
 | setpoint step +2 °C | to band (min) | overshoot | heater on | switch-ons | in band |
@@ -96,23 +96,26 @@ following the real `tempOut` trace (27.2–28.3 °C over 5.7 h).
 
 What the matrix supports (full numbers in `figures/results.json`):
 
-- **Energy is not where controllers differ.** Heater-on time is within ±3 min of 44 min for all
-  four in every 4-hour scenario: at steady state the heater only replaces the loss b·(T − T_out),
-  whatever switches it. The controllers differ in overshoot, band-holding and switching.
+- **Energy is not where controllers differ.** Within each scenario the four controllers' heater-on
+  times agree to within 2.5 min (43.9–46.0 min on the 4 h cold start, 43.3–45.7 min over the 5.7 h
+  ambient trace, 31.0–32.4 min in the 3 h after the door opening): at steady state the heater only
+  replaces the loss b·(T − T_out), whatever switches it. The controllers differ in overshoot,
+  band-holding and switching.
 - **The firmware's on/off is the only controller with no overshoot on the fitted plant**
-  (0.04–0.11 °C in every scenario) because its coast-lead projection switches off about 1.5 °C
-  early during a heat-up (first switch-off at 33.1 °C for a 34.5 °C target); the plain
-  thermostat overshoots 1.3–1.7 °C and then cycles between −0.2 and +0.8 °C of the target,
-  as the chamber keeps warming for minutes after the relay opens.
+  (0.04–0.11 °C in every scenario) because its coast-lead projection switches off about 1.4 °C
+  early during a heat-up (after the 600 s duty rest at 10 min, the projection first switches off
+  at 33.1 °C for a 34.5 °C target); the plain thermostat overshoots 1.3–1.7 °C and then cycles
+  between −0.2 and +0.8 °C of the target, as the chamber keeps warming for minutes after the
+  relay opens.
 - The firmware holds the band slightly **below** target (final error −0.04 to −0.07 °C): the
   projection is only ever added, never subtracted. The real day shows the same: the steady
   state at 38.8 °C sat 0.1–0.2 °C low.
-- **PID** removes the offset (final error 0.00) but needs 6–9 times as many relay switch-ons
-  (106–170 per run) because every 120 s window carries a pulse; raising the window reduces
-  switching and widens the band.
+- **PID** removes the offset (final error 0.00) but needs 5–7 times as many relay switch-ons
+  (73–170 per run against the firmware's 14–25) because every 120 s window carries a pulse;
+  raising the window reduces switching and widens the band.
 - **MPC** gives the tightest tracking (RMS 0.05 °C on ambient drift, 97 % in band on the
-  step) with 3–4 times the firmware's switching, and is the controller that benefits from
-  knowing the ambient trace.
+  step) with 3–4 times the firmware's switching. It assumes a constant 27.2 °C ambient; giving it
+  the measured trace is the extension in WALKTHROUGH.md.
 - **Door opening**: a 10-minute opening drops the chamber 4.2–4.8 °C with every controller
   because the heater is interlocked off; the chamber is back in the band 12–18 min after the
   door closes, the firmware without overshoot, the thermostat with 1.6 °C.
@@ -141,12 +144,13 @@ Feeding the real day's target schedule and ambient to the firmware logic on the 
 | heater duty over the day | 19.6 % | 20.2 % | 19.2 % |
 | relay switch-ons | 26 | 15 | 32 |
 
-Honest reading: the heater-lag plant reproduces the steady pulsing at 34.5 and 38.8 °C (same
-duty, same ~6 min pulse spacing) but not the real 1.4 °C overshoot of the first approach; the
-dead-time plant reproduces that overshoot and then saw-tooths ±1.3 °C where the device held
-±0.2 °C. Neither model explains the first run from cold fully, and the hour from 1.0 to 2.2 h
-where the real chamber fell to 30.2 °C with the heater off below target cannot be simulated:
-the export has no field saying why the heater was blocked then. This is an in-sample check
+Honest reading: the heater-lag plant reproduces the steady level and duty at 34.5 and 38.8 °C (held
+0.0–0.2 °C low like the device; its pulses are ~10 min apart where the real ones are ~7 min) but
+not the real 1.4 °C overshoot of the first approach; the dead-time plant reproduces that
+overshoot and then saw-tooths from −0.5 to +1.4 °C around the target where the device held
+within −0.2…0.0 °C. Neither model explains the first run from cold fully, and the hour from
+1.0 to 2.2 h where the real chamber fell to 30.2 °C with the heater mostly off below target
+cannot be simulated: the export has no field saying why the heater was blocked then. This is an in-sample check
 (the plants were fitted on this day), not a validation on new data.
 
 ## What the real firmware does and why on/off is defensible
@@ -159,8 +163,8 @@ the ±0.2 °C band matches the sensor's 0.01 °C steps and the brood's tolerance
 coast-lead projection removes the overshoot a plain thermostat has on this lagging plant, the
 30 s minimum OFF and the duty rest bound relay wear and heater-on stretches, and the whole
 thing runs with no model, no tuning constants beyond five numbers in `Config.h`, and
-behaviour an operator can predict. Its known cost is a ~0.05 °C low bias and 18–25 switch-ons
-per 4 h; a PID would trade that for 100+ switch-ons, an MPC for a model that must be right.
+behaviour an operator can predict. Its known cost is a ~0.05 °C low bias and 14–25 switch-ons
+per run; a PID would trade that for 73–170 switch-ons, an MPC for a model that must be right.
 
 ## Limitations
 

@@ -39,8 +39,9 @@ time constant, a 5-minute heater lag and a 0.4 °C band; PID would pay off only 
 had to shrink below the sensor's noise.
 
 **"How do you know the simulation is right?"** Partly. The replay (figure 06) shows the
-firmware logic on the fitted plant reproducing the real duty (19.6 % vs 19.2 %) and the pulse
-pattern at 34.5 and 38.8 °C with 0.21 °C RMSE after the first step. It does *not* reproduce the
+firmware logic on the fitted plant reproducing the real duty (19.6 % vs 19.2 %) and the steady
+level at 34.5 and 38.8 °C with 0.21 °C RMSE after the first step (its pulses are ~10 min apart,
+the real ones ~7). It does *not* reproduce the
 1.4 °C overshoot of the first approach from cold (the dead-time plant does, but then
 saw-tooths), and it is in-sample. So: good near the setpoint, wrong on the first heat-up;
 TODO.md item 2 is about finding out why.
