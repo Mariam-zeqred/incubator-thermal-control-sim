@@ -178,8 +178,8 @@ heater-lag plant the coast lead does the work: at 0.1 °C anticipation the overs
 1.57 → 0.80 → 0.07 → 0.00 °C as the lead goes 0 → 100 → 200 → 300 s, while anticipation alone
 leaves 1.38 °C even at 0.3 °C. The lead is not free: past 200 s the final error grows from
 −0.04 to −0.11 °C, time to band from 20.6 to 31.2 min and switch-ons from 18 to 26. The
-shipped pair (0.1 °C, 200 s) is the first cell where the overshoot is below 0.1 °C and the
-bias is still within the sensor's noise. On the first-order dead-time plant no pair helps
+shipped pair (0.1 °C, 200 s) is the shortest lead at which the overshoot is below 0.1 °C
+while the bias stays under 0.05 °C. On the first-order dead-time plant no pair helps
 (overshoot 1.3–1.9 °C, bias +0.33…+0.69 °C): a 60 s rise-rate window cannot see through a
 210 s dead time, which is the same story as the replay's first approach.
 
