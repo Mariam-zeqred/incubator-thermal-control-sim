@@ -23,6 +23,7 @@ from thermosim import __version__, metrics, scenarios, simulate  # noqa: E402
 from thermosim.controllers import FirmwareHysteresis  # noqa: E402
 from thermosim.disturbances import load_trace  # noqa: E402
 from thermosim.plant import PLANTS, load_params, make_plant  # noqa: E402
+from thermosim.sweep import SweepResult, sweep_firmware  # noqa: E402
 
 FIG_DIR = ROOT / "figures"
 PLANT_LABEL = {
@@ -170,6 +171,56 @@ def plot_robustness(runs: dict, fname: str) -> None:
     plt.close(fig)
 
 
+def _annotate(ax, im, grid: np.ndarray, fmt: str, chosen: tuple[int, int]) -> None:
+    for i in range(grid.shape[0]):
+        for j in range(grid.shape[1]):
+            r, g, b, _ = im.cmap(im.norm(grid[i, j]))
+            ink = "white" if 0.299 * r + 0.587 * g + 0.114 * b < 0.5 else "black"
+            ax.text(j, i, fmt.format(grid[i, j]), ha="center", va="center", fontsize=8, color=ink)
+    ax.add_patch(
+        plt.Rectangle(
+            (chosen[1] - 0.5, chosen[0] - 0.5), 1, 1, fill=False, lw=2, ec="k", clip_on=False
+        )
+    )
+
+
+def plot_sweep(sw: SweepResult, fname: str, chosen: tuple[float, float]) -> None:
+    """Overshoot (one hue, magnitude) and final bias (two hues, sign) over the grid."""
+    ci = (sw.anticipations.index(chosen[0]), sw.coast_leads_s.index(chosen[1]))
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+    panels = [
+        (axes[0], sw.overshoot_c, "Blues", "overshoot (°C)", 0.0, None, "{:.2f}"),
+        (
+            axes[1],
+            sw.final_error_c,
+            "RdBu_r",
+            "final error (°C, + = above target)",
+            -0.2,
+            0.2,
+            "{:+.2f}",
+        ),
+    ]
+    for ax, grid, cmap, title, vmin, vmax, fmt in panels:
+        im = ax.imshow(grid, cmap=cmap, vmin=vmin, vmax=vmax, origin="lower", aspect="auto")
+        _annotate(ax, im, grid, fmt, ci)
+        ax.set_xticks(range(len(sw.coast_leads_s)))
+        ax.set_xticklabels([f"{c:g}" for c in sw.coast_leads_s])
+        ax.set_yticks(range(len(sw.anticipations)))
+        ax.set_yticklabels([f"{a:g}" for a in sw.anticipations])
+        ax.set_xlabel("coast lead (s)")
+        ax.set_ylabel("OFF anticipation (°C)")
+        ax.set_title(title, fontsize=9)
+        fig.colorbar(im, ax=ax, shrink=0.85)
+    fig.suptitle(
+        "Firmware on/off, cold start on the heater-lag plant: the two Config.h constants "
+        "(box = shipped values)",
+        fontsize=10,
+    )
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / fname)
+    plt.close(fig)
+
+
 def replay(params: dict) -> dict:
     """Firmware logic on the fitted plant, driven by the real day's targets and ambient."""
     rows = load_trace()
@@ -243,6 +294,12 @@ def main() -> None:
     plot_metric_bars(results, "heater_lag", "05_metrics.png")
     plot_robustness(runs, "07_plant_robustness.png")
     rep = replay(params)
+    chosen = (FirmwareHysteresis().anticipation, FirmwareHysteresis().coast_lead_s)
+    sweeps = {
+        name: sweep_firmware(scenarios.cold_start(), plant_name=name, params=params)
+        for name in ("heater_lag", "first_order")
+    }
+    plot_sweep(sweeps["heater_lag"], "08_anticipation_sweep.png", chosen)
     fo = params["first_order"]
     kp, ti, _ = scenarios._simc(fo)
     out = {
@@ -265,6 +322,12 @@ def main() -> None:
         "energy (heater power unknown)",
         "matrix": results,
         "replay_2026_10_03": rep,
+        "anticipation_sweep": {
+            "note": "FirmwareHysteresis on the 4 h cold start, every (anticipation, coast "
+            "lead) pair, other constants at Config.h defaults; grids are indexed "
+            "[anticipation][coast lead]; shipped values are anticipation 0.1 °C, coast 200 s",
+            **{name: sw.as_dict() for name, sw in sweeps.items()},
+        },
     }
     (FIG_DIR / "results.json").write_text(json.dumps(out, indent=2) + "\n")
     print(json.dumps(rep, indent=1))

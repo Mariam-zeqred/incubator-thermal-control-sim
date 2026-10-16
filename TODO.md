@@ -35,15 +35,7 @@ static figures, honest README). What is left needs Mariam, her device, or a brow
 7. Let `MPCSketch` use an ambient forecast and compare on `ambient_drift(offset=+5)`.
 8. Replace the exhaustive search in `MPCSketch` with a small QP (cvxpy) so a longer horizon is
    affordable; keep the enumerating version as the reference in tests.
-9. Sweep `anticipation` × `coast_lead_s` on the heater-lag plant and plot overshoot and final
-   bias, so the two Config.h constants have a figure behind them.
 
-## Open (QC 2026-10-15)
-
-10. `scenarios.py` `default_controllers()` builds `MPCSketch` from `params["first_order"]`
-    (a = 0.554, b = 0.0101) while keeping the heater-lag `tau_h` default, so the MPC's internal
-    model is the heater-lag structure with the first-order gains, not the second-order fit
-    (0.591 / 0.0111) that README and WALKTHROUGH call "the heater-lag model". Either build it
-    from `params["second_order"]` (a, tau_h, b) and regenerate `figures/` + `results.json`
-    (the MPC rows will move a little), or say in the README which gains it uses.
-11. `scripts/make_figures.py` docstring says "about half a minute"; it runs in ~8–11 s.
+Closed on 2026-10-16: the anticipation × coast-lead sweep (`sweep.py`, figure 08, README
+"Where the firmware's two constants sit"); the MPC is now built from the heater-lag fit
+(`default_controllers`, pinned by a test); the `make_figures.py` runtime note.

@@ -4,16 +4,16 @@
 
 Repo #1 fitted *how the chamber behaves*; here that model is driven by *controllers*,
 including a step-by-step re-implementation of your own firmware's heater decision. The aim
-is not a "better" controller than the one you shipped but numbers for what the on/off logic
-costs and buys against PID and MPC on the same relay. The result: your firmware is the only
-one with no overshoot on the fitted plant, at the price of a small low bias, and heater
-energy is the same for all four, which is physics, not the controller.
+is not a "better" controller but numbers for what on/off costs and buys against PID and MPC
+on the same relay. The result: your firmware is the only one with no overshoot
+on the fitted plant, at the price of a small low bias, and heater energy is the same for all
+four, which is physics, not the controller.
 
 Three choices matter. The **interlock lives in the simulator**, so the door and the 40 °C
 cut-off apply equally to every controller, as `Interlock.*` does in the firmware. **Every
-README number comes from `figures/results.json`**, written by `scripts/make_figures.py`, so
-`make check` reproduces the README. And the **replay of the real day** (figure 06) is in the
-repo precisely because it does not match everywhere.
+README number comes from `figures/results.json`**, so `make check` reproduces the README.
+And the **replay of the real day** (figure 06) is in the repo because it does not match
+everywhere.
 
 ## File map
 
@@ -23,20 +23,21 @@ repo precisely because it does not match everywhere.
 - `controllers/pid.py` – PI with conditional-integration anti-windup, SIMC tuning, pulses.
 - `controllers/mpc.py` – enumerates duty sequences on the heater-lag model, bias-corrected.
 - `simulate.py` – the 1 s loop with interlock; `scenarios.py`, `disturbances.py`,
-  `metrics.py` – events, real `tempOut` trace and door, scores.
-- `scripts/make_figures.py` – the matrix (3 plants × 4 scenarios × 4 controllers).
+  `metrics.py` – events, the real `tempOut` trace, door, scores.
+- `scripts/make_figures.py` – the matrix (3 plants × 4 scenarios × 4 controllers), figures.
 - `app/streamlit_app.py` – sliders for the firmware constants, PID gains and MPC weights.
-- `tests/` – 36 tests: plant physics, each firmware rule alone, interlock, replay RMSE.
+- `sweep.py` – the firmware logic over an anticipation × coast-lead grid (figure 08).
+- `tests/` – 41 tests: plant physics, each firmware rule alone, interlock, replay, sweep.
 
 ## Three questions a professor may ask
 
 **"Your firmware is on/off; why not PID?"** Because the actuator is a relay. A PID's output
 on a relay is pulse width, which the firmware's 600 s / 60 s duty limit already is. On the
 fitted plant the simulated PID has no bias but needs six times the relay switch-ons for the
-same band, and the firmware's coast-lead projection already removes the overshoot a
-thermostat has (figure 01). On/off with anticipation is the right complexity for a 99-minute
-time constant, a 5-minute heater lag and a 0.4 °C band; PID would pay off only if the band
-had to shrink below the sensor's noise.
+same band, while the firmware's coast-lead projection removes the overshoot a thermostat has
+(figure 01; figure 08 shows 200 s is the shortest lead that does). On/off with anticipation
+is the right complexity for a 99-minute time constant, a 5-minute heater lag and a 0.4 °C
+band; PID would pay off only if the band had to shrink below the sensor's noise.
 
 **"How do you know the simulation is right?"** Partly. The replay (figure 06) shows the
 firmware logic on the fitted plant reproducing the real duty (19.6 % vs 19.2 %) and the steady
@@ -48,12 +49,11 @@ TODO.md item 2 is about finding out why.
 
 **"What does the chamber+wall plant show?"** That the ranking depends on the plant. With fast
 air and a slow wall, the firmware chatters and the MPC overshoots 2.7 °C because its model is
-wrong, while the dumb thermostat wins. That plant is illustrative (the data cannot identify a
+wrong; the dumb thermostat wins. That plant is illustrative (the data cannot identify a
 wall), but it is the argument for fitting a model before choosing a controller.
 
 ## One thing you could extend
 
 Give `MPCSketch` the ambient forecast instead of a constant: the device measures `tempOut`,
 so the controller could predict the loss term for the next 8 minutes. Compare it with the
-firmware logic on a hotter-day trace (`ambient_drift(offset=+5)`), where the loss changes
-most.
+firmware logic on a hotter-day trace (`ambient_drift(offset=+5)`).

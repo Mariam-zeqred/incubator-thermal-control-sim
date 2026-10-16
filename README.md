@@ -28,7 +28,7 @@ data/model_params.json  (a, b, τ_h fitted in repo #1)      data/incubator_2026-
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-make check          # ruff + 36 pytest tests + regenerate figures/ (≈ 10–15 s)
+make check          # ruff + 41 pytest tests + regenerate figures/ (≈ 10–15 s)
 make app            # Streamlit page: pick plant, scenario, controller settings
 ```
 
@@ -168,17 +168,33 @@ thing runs with no model, no tuning constants beyond five numbers in `Config.h`,
 behaviour an operator can predict. Its known cost is a ~0.05 °C low bias and 14–25 switch-ons
 per run; a PID would trade that for 73–170 switch-ons, an MPC for a model that must be right.
 
+## Where the firmware's two constants sit
+
+![anticipation sweep](figures/08_anticipation_sweep.png)
+
+`sweep.py` runs the firmware logic on the cold start for every pair of its two `Config.h`
+constants (OFF anticipation 0–0.3 °C × coast lead 0–400 s; grids in `results.json`). On the
+heater-lag plant the coast lead does the work: at 0.1 °C anticipation the overshoot falls
+1.57 → 0.80 → 0.07 → 0.00 °C as the lead goes 0 → 100 → 200 → 300 s, while anticipation alone
+leaves 1.38 °C even at 0.3 °C. The lead is not free: past 200 s the final error grows from
+−0.04 to −0.11 °C, time to band from 20.6 to 31.2 min and switch-ons from 18 to 26. The
+shipped pair (0.1 °C, 200 s) is the first cell where the overshoot is below 0.1 °C and the
+bias is still within the sensor's noise. On the first-order dead-time plant no pair helps
+(overshoot 1.3–1.9 °C, bias +0.33…+0.69 °C): a 60 s rise-rate window cannot see through a
+210 s dead time, which is the same story as the replay's first approach.
+
 ## Limitations
 
 - One device, one day, fitted parameters with optimistic standard errors (see repo #1); the
   chamber+wall plant and the door loss ×10 are illustrative, not measured.
 - Heater power unknown, so no kWh; `metrics.energy_kwh_at` converts for an assumed wattage.
 - The MPC is an exhaustive-search sketch; the PID is PI with SIMC defaults, not hand-tuned.
+- The sweep is on the cold start only; the real day's constants were chosen on the device.
 - The Streamlit page was run headless in a test, not in a browser, in the sandbox.
 
 ## Next steps
 
 See `TODO.md`: measure the heater's power, log a real door opening, explain the first-approach
-overshoot, and try the firmware logic with the anticipation and coast lead as the page lets you.
+overshoot, and give the MPC the ambient trace instead of a constant.
 
 MIT licence. The data files come from the author's own device via incubator-telemetry-analysis.
