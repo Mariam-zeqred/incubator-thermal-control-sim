@@ -92,3 +92,16 @@ def test_replay_of_the_real_day_matches_the_measured_trace():
     real_on = np.mean([r["heater"] for r in rows])
     sim_on = df["heater"].mean()
     assert abs(sim_on - real_on) < 0.1
+
+
+def test_default_controllers_use_the_fit_each_model_needs():
+    """The MPC predicts with the heater-lag fit (a, tau_h, b); the PID is tuned on the
+    first-order fit (SIMC wants a dead time). README and WALKTHROUGH say so."""
+    params = load_params()
+    ctls = {c.name: c for c in scenarios.default_controllers(params)}
+    so, fo = params["second_order"], params["first_order"]
+    mpc = ctls["MPC sketch"]
+    assert mpc.a == so["a_c_per_min"] and mpc.b == so["b_per_min"]
+    assert mpc.tau_h_min == so["tau_h_min"]
+    kp, ti, _ = scenarios._simc(fo)
+    assert ctls["PID relay"].kp == kp and ctls["PID relay"].ti_min == ti

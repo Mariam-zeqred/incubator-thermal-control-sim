@@ -1,7 +1,7 @@
 """Run every controller on every scenario and write figures/*.png + figures/results.json.
 
 The README quotes only numbers from results.json, so re-running this script reproduces
-every figure and every number in it. Runtime: about half a minute.
+every figure and every number in it. Runtime: about ten seconds (48 four-hour runs at 1 s).
 """
 
 from __future__ import annotations

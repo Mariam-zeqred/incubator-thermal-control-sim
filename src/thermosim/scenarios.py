@@ -91,13 +91,21 @@ def default_controllers(params: dict | None = None, t_out: float = AMBIENT) -> l
     """The four controllers compared everywhere, tuned once from the fitted parameters."""
     params = params or load_params()
     fo = params["first_order"]
+    so = params["second_order"]
     pid = PIDRelay()
     pid.kp, pid.ti_min, pid.td_min = _simc(fo)
     return [
         FirmwareHysteresis(),
         PlainHysteresis(),
         pid,
-        MPCSketch(a=fo["a_c_per_min"], b=fo["b_per_min"], t_out_assumed=t_out),
+        # the MPC predicts with the heater-lag fit (a, tau_h, b), the better of the two
+        # fitted models; the PID is tuned on the first-order fit because SIMC wants a dead time
+        MPCSketch(
+            a=so["a_c_per_min"],
+            tau_h_min=so["tau_h_min"],
+            b=so["b_per_min"],
+            t_out_assumed=t_out,
+        ),
     ]
 
 

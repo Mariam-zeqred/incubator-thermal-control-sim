@@ -59,9 +59,11 @@ energy); the heater's wattage is not in the data.
   Ti = 28 min), conditional-integration anti-windup, output turned into relay pulses by
   time-proportioning over a 120 s window with a 10 s minimum pulse.
 - `MPCSketch`: every 120 s enumerates 5⁴ duty sequences over a 4-window horizon on the
-  heater-lag model, cost = tracking² + 0.02·duty + 0.05·|Δduty|, applies the first move, and
-  carries a bias term (measured − predicted) forward. Exhaustive search, no QP, no constraints
-  beyond 0–1: a sketch of what knowing the model buys, not a deployable design.
+  heater-lag model with its fitted gains (a = 0.591 °C/min, τ_h = 4.9 min, b = 0.0111 /min;
+  the PID is tuned on the first-order fit because SIMC needs a dead time), cost =
+  tracking² + 0.02·duty + 0.05·|Δduty|, applies the first move, and carries a bias term
+  (measured − predicted) forward. Exhaustive search, no QP, no constraints beyond 0–1: a
+  sketch of what knowing the model buys, not a deployable design.
 
 The simulator applies the firmware's interlock outside every controller: heater off while the
 door is open and a latched cut-off at 40 °C (re-armed 0.5 °C lower; the real firmware also
@@ -88,7 +90,7 @@ following the real `tempOut` trace (27.2–28.3 °C over 5.7 h).
 | on/off firmware | 9.1 | **0.04** | 44.9 | 21 | 84 % |
 | on/off plain | 4.8 | 1.27 | 43.9 | 10 | 27 % |
 | PID relay | 10.7 | 0.63 | 45.5 | 118 | 89 % |
-| MPC sketch | 8.3 | 0.15 | 45.5 | 76 | **97 %** |
+| MPC sketch | 8.3 | 0.15 | 45.5 | 80 | **97 %** |
 
 ![door opening](figures/03_door_opening.png)
 ![ambient drift](figures/04_ambient_drift.png)
@@ -114,7 +116,7 @@ What the matrix supports (full numbers in `figures/results.json`):
   (73–170 per run against the firmware's 14–25) because every 120 s window carries a pulse;
   raising the window reduces switching and widens the band.
 - **MPC** gives the tightest tracking (RMS 0.05 °C on ambient drift, 97 % in band on the
-  step) with 3–4 times the firmware's switching. It assumes a constant 27.2 °C ambient; giving it
+  step) with 2.8–3.8 times the firmware's switching. It assumes a constant 27.2 °C ambient; giving it
   the measured trace is the extension in WALKTHROUGH.md.
 - **Door opening**: a 10-minute opening drops the chamber 4.2–4.8 °C with every controller
   because the heater is interlocked off; the chamber is back in the band 12–18 min after the
